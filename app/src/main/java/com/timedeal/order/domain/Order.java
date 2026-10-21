@@ -57,4 +57,8 @@ public class Order {
     public void markPaid() {
         this.status = OrderStatus.PAID;
     }
+
+    public void markFailed() {
+        this.status = OrderStatus.FAILED;
+    }
 }

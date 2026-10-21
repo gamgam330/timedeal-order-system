@@ -30,4 +30,12 @@ public class ProductService {
         product.decreaseStock(quantity);
         return product;
     }
+
+    /** 결제 실패 시 예약했던 재고를 되돌린다 (보상). */
+    @Transactional
+    public void increaseStock(Long productId, int quantity) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new NotFoundException("product", productId));
+        product.increaseStock(quantity);
+    }
 }
