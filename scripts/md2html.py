@@ -25,5 +25,20 @@ def placeholder(m):
     return f'\n\n<p>[[IMG{len(imgs)}]]</p>\n\n'
 body = re.sub(r'!\[([^\]]*)\]\(([^)]+)\)', placeholder, '\n'.join(out))
 html = markdown.markdown(body, extensions=['tables', 'fenced_code'])
+
+# 티스토리 + hELLO 스킨용 서식
+# - 인용구: "정리"로 시작하면 왼쪽 세로선(style2), 나머지는 회색 박스(style3). 지정이 없으면 hELLO가 가운데 큰 따옴표로 그린다
+# - 표: hELLO는 data-ke-align을 정렬에 쓰지 않으므로 폭을 직접 지정하고 셀을 가운데 정렬한다
+# - 코드 블록: 언어를 지정하지 않으면 highlight.js가 엉뚱한 언어로 추측한다
+def blockquote(m):
+    style = 'style2' if m.group(1).lstrip().startswith('<p><strong>정리') else 'style3'
+    return f'<blockquote data-ke-style="{style}">{m.group(1)}</blockquote>'
+html = re.sub(r'<blockquote>(.*?)</blockquote>', blockquote, html, flags=re.S)
+html = re.sub(r'<table>', '<table style="width: 100%; margin-left: auto; margin-right: auto;" data-ke-align="alignCenter">', html)
+html = re.sub(r'<(td|th)(?: style="[^"]*")?>', r'<\1 style="text-align: center;">', html)
+def codeblock(m):
+    lang = {'text': 'plaintext', '': 'plaintext'}.get(m.group(1) or '', m.group(1))
+    return f'<pre class="{lang}" data-ke-language="{lang}" data-ke-type="codeblock"><code class="language-{lang}">'
+html = re.sub(r'<pre><code(?: class="language-(\w+)")?>', codeblock, html)
 json.dump({'title': title, 'html': html, 'imgs': imgs}, open(sys.argv[2], 'w'), ensure_ascii=False)
 print(title, len(html), imgs)
