@@ -3,8 +3,9 @@ spring:
     name: timedeal
   datasource:
     url: jdbc:mysql://localhost:3306/timedeal
-    username: timedeal
-    password: timedeal
+    # 로컬 개발용 기본값. 실제 비밀값은 환경 변수로만 주입한다 (CLAUDE.md 12장)
+    username: ${DB_USERNAME:timedeal}
+    password: ${DB_PASSWORD:timedeal}
     # HikariCP 기본 풀 크기(10)를 일부러 그대로 둔다. 01단계 부하 테스트에서 다시 본다.
   jpa:
     hibernate:
@@ -15,6 +16,24 @@ spring:
         format_sql: true
   flyway:
     enabled: true
+
+server:
+  tomcat:
+    mbeanregistry:
+      enabled: true # 꺼져 있으면 tomcat_threads_* 지표가 수집되지 않는다
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, prometheus, metrics
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    distribution:
+      # 히스토그램 버킷을 내보내야 Prometheus에서 p95/p99를 계산할 수 있다
+      percentiles-histogram:
+        http.server.requests: true
 
 # 가짜 PG: 지연 시간과 실패율을 조절해서 장애 상황을 재현한다
 pg:

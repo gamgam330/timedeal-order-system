@@ -94,6 +94,8 @@
 | 캐시와 락 | Redis 7 | 03단계부터 |
 | 메시징 | Apache Kafka (KRaft 모드) | 04단계부터 |
 | 부하 테스트 | K6 | 01단계부터 |
+| 모니터링 | Prometheus v3.15.0, Grafana 13.2.4 | 앱은 Actuator와 Micrometer로 지표를 노출한다. 대시보드는 `infra/grafana/dashboards/`에 코드로 관리한다 |
+| 비밀값 검사 | gitleaks v8.30.1 (Docker) | `make secret-scan` |
 | 인프라 | Docker Compose | 모든 이미지 버전을 태그로 고정한다 (`latest` 금지) |
 
 - 아키텍처: **모놀리스로 시작해서 07단계에서 서비스로 분리한다.** 분리하는 이유 자체가 글 한 편이 된다.
@@ -118,12 +120,19 @@
 ## 8. 실행 명령
 
 ```bash
-make up      # MySQL 실행 (healthcheck 통과까지 대기)
+make up      # MySQL, Prometheus, Grafana 실행 (healthcheck 통과까지 대기)
 make run     # 애플리케이션 실행 (localhost:8080)
 make test    # 테스트 (Testcontainers로 MySQL을 띄움, Docker 필요)
 make down    # 인프라 종료
-make reset   # 인프라 종료 + 볼륨 삭제 (DB 초기화)
+make reset   # 인프라 종료 + 볼륨 삭제 (DB, Prometheus 데이터 초기화)
+make secret-scan  # push 전 비밀값 검사 (git 이력 전체와 작업 트리)
 ```
+
+| 주소 | 용도 |
+|---|---|
+| http://localhost:8080/actuator/prometheus | 앱이 노출하는 지표 원본 |
+| http://localhost:9090 | Prometheus |
+| http://localhost:3000 | Grafana (`Timedeal / Timedeal App` 대시보드) |
 
 | API | 설명 |
 |---|---|
@@ -187,3 +196,11 @@ make reset   # 인프라 종료 + 볼륨 삭제 (DB 초기화)
 - 커밋은 의미 단위로 하고, 메시지는 `stepNN: 무엇을 했는지` 형식으로 쓴다.
 - 단계마다 태그를 남긴다: `step-NN-broken` (문제를 재현한 상태), `step-NN-fixed` (해결한 상태). 글에서 GitHub compare 링크로 쓴다.
 - Claude는 커밋과 태그를 만들 수 있다. **push는 사용자가 요청할 때만 한다.**
+
+## 12. 비밀값 규칙 (공개 저장소: github.com/gamgam330/timedeal-order-system)
+
+- **과금이 걸린 키(AWS 액세스 키, K6 Cloud 토큰, 외부 API 키 등)는 어떤 파일에도 하드코딩하지 않는다.** 환경 변수나 ignore 처리된 파일로만 주입한다.
+- 인프라 비밀값은 `infra/.env`에 둔다 (ignore 대상). 커밋하는 건 실제 값이 없는 `infra/.env.example`뿐이다.
+- `application.yml`에는 `${ENV_VAR:로컬기본값}` 형태만 쓴다. 로컬 기본값은 docker-compose 로컬 DB용(`timedeal`/`root`)으로 한정한다.
+- 새로운 비밀값 종류가 생기면 `.gitignore`부터 갱신한 뒤 파일을 만든다.
+- **push 전에는 반드시 `make secret-scan`을 실행한다.** 누출이 발견되면 push하지 않고 사용자에게 알린다. 이미 push된 키는 git 이력에서 지워도 안전하지 않으므로 **즉시 해당 키를 폐기(rotate)** 한다.

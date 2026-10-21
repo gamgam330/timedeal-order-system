@@ -1,3 +1,4 @@
+# --- 빌드 / IDE ---
 .gradle/
 build/
 !gradle/wrapper/gradle-wrapper.jar
@@ -6,3 +7,28 @@ build/
 .vscode/
 out/
 .DS_Store
+
+# --- 비밀값: 절대 커밋하지 않는다 (CLAUDE.md 12장) ---
+# 환경 변수 파일 (예시 파일만 커밋)
+.env
+.env.*
+!.env.example
+# Spring 로컬/비밀 프로파일
+application-local.yml
+application-secret.yml
+application-prod.yml
+# 클라우드 자격 증명 (AWS 등)
+.aws/
+credentials
+*.pem
+*.key
+*.p12
+*.jks
+# Terraform 상태와 변수 (인프라 계정 정보가 들어감)
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+# K6 Cloud 등 외부 서비스 토큰
+k6/.k6cloud

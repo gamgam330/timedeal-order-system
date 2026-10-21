@@ -3,10 +3,10 @@ services:
     image: mysql:8.4.11
     container_name: timedeal-mysql
     environment:
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
       MYSQL_DATABASE: timedeal
-      MYSQL_USER: timedeal
-      MYSQL_PASSWORD: timedeal
+      MYSQL_USER: ${MYSQL_USER:-timedeal}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-timedeal}
       TZ: Asia/Seoul
     ports:
       - "3306:3306"
@@ -14,7 +14,41 @@ services:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_0900_ai_ci
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$$MYSQL_ROOT_PASSWORD"]
       interval: 5s
       timeout: 3s
       retries: 20
+
+  prometheus:
+    image: prom/prometheus:v3.15.0
+    container_name: timedeal-prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=15d
+      # K6가 측정 결과를 Prometheus로 밀어 넣을 수 있게 한다 (01단계에서 사용)
+      - --web.enable-remote-write-receiver
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    extra_hosts:
+      # 애플리케이션은 컨테이너가 아니라 호스트에서 실행된다
+      - "host.docker.internal:host-gateway"
+
+  grafana:
+    image: grafana/grafana:13.2.4
+    container_name: timedeal-grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+
+volumes:
+  prometheus-data:

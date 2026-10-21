@@ -1,0 +1,10 @@
+global:
+  # 부하 테스트는 몇 분 단위로 짧게 돌아가므로 수집 간격을 기본(1m)보다 촘촘하게 잡는다
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
+scrape_configs:
+  - job_name: timedeal-app
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["host.docker.internal:8080"]
