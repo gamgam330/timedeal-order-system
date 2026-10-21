@@ -13,6 +13,12 @@ services:
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_0900_ai_ci
+    # 측정 환경 고정: 실행할 때마다 DB가 쓸 수 있는 자원이 같아야 수치를 비교할 수 있다
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2g
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$$MYSQL_ROOT_PASSWORD"]
       interval: 5s
