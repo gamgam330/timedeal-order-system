@@ -34,6 +34,7 @@ def blockquote(m):
     style = 'style2' if m.group(1).lstrip().startswith('<p><strong>정리') else 'style3'
     return f'<blockquote data-ke-style="{style}">{m.group(1)}</blockquote>'
 html = re.sub(r'<blockquote>(.*?)</blockquote>', blockquote, html, flags=re.S)
+html = re.sub(r'(<p><strong>[^<]+</strong>)\n', r'\1<br>\n', html)  # 박스 제목 다음 줄바꿈 유지
 html = re.sub(r'<table>', '<table style="width: 100%; margin-left: auto; margin-right: auto;" data-ke-align="alignCenter">', html)
 html = re.sub(r'<(td|th)(?: style="[^"]*")?>', r'<\1 style="text-align: center;">', html)
 def codeblock(m):
