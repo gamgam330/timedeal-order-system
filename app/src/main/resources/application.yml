@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: timedeal
+  datasource:
+    url: jdbc:mysql://localhost:3306/timedeal
+    username: timedeal
+    password: timedeal
+    # HikariCP 기본 풀 크기(10)를 일부러 그대로 둔다. 01단계 부하 테스트에서 다시 본다.
+  jpa:
+    hibernate:
+      ddl-auto: validate # 스키마는 Flyway가 관리하고, JPA는 엔티티와 맞는지 검증만 한다
+    open-in-view: false # 요청이 끝날 때까지 DB 커넥션을 붙잡지 않게 한다
+    properties:
+      hibernate:
+        format_sql: true
+  flyway:
+    enabled: true
+
+# 가짜 PG: 지연 시간과 실패율을 조절해서 장애 상황을 재현한다
+pg:
+  latency-ms: 300
+  failure-rate: 0.0
