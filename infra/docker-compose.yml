@@ -48,6 +48,10 @@ services:
     environment:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      # 패널을 PNG로 렌더링한다 (블로그용 그래프 캡처: make capture)
+      GF_RENDERING_SERVER_URL: http://renderer:8081/render
+      GF_RENDERING_CALLBACK_URL: http://grafana:3000/
+      GF_RENDERING_RENDERER_TOKEN: ${RENDERER_TOKEN:-local-renderer-token}
     ports:
       - "3000:3000"
     volumes:
@@ -55,6 +59,13 @@ services:
       - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
     depends_on:
       - prometheus
+      - renderer
+
+  renderer:
+    image: grafana/grafana-image-renderer:v5.12.7
+    container_name: timedeal-renderer
+    environment:
+      AUTH_TOKEN: ${RENDERER_TOKEN:-local-renderer-token}
 
 volumes:
   prometheus-data:

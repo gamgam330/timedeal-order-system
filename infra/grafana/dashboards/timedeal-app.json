@@ -3,7 +3,7 @@
   "title": "Timedeal App",
   "description": "부하 테스트 중 서버 내부에서 무슨 일이 일어나는지 본다: 요청 → 스레드 → 커넥션 → JVM",
   "schemaVersion": 39,
-  "version": 2,
+  "version": 3,
   "editable": true,
   "refresh": "5s",
   "time": {
@@ -23,7 +23,8 @@
         "w": 24,
         "x": 0,
         "y": 0
-      }
+      },
+      "id": 1
     },
     {
       "type": "timeseries",
@@ -55,7 +56,8 @@
           "expr": "sum by (status) (rate(k6_http_reqs_total[$__rate_interval]))",
           "legendFormat": "req/s {{status}}"
         }
-      ]
+      ],
+      "id": 2
     },
     {
       "type": "timeseries",
@@ -88,7 +90,8 @@
           "expr": "max(k6_http_req_duration_p99)",
           "legendFormat": "p99"
         }
-      ]
+      ],
+      "id": 3
     },
     {
       "type": "timeseries",
@@ -117,18 +120,20 @@
           "expr": "max(k6_http_req_failed_rate)",
           "legendFormat": "failed"
         }
-      ]
+      ],
+      "id": 4
     },
     {
       "type": "row",
-      "title": "HTTP: 클라이언트가 보는 것",
+      "title": "HTTP: 서버가 본 것 (스레드가 요청을 집은 뒤부터)",
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
         "y": 9
-      }
+      },
+      "id": 5
     },
     {
       "type": "timeseries",
@@ -155,7 +160,8 @@
           "expr": "sum by (method, uri, status) (rate(http_server_requests_seconds_count{application=\"timedeal\", uri!~\"/actuator.*\"}[$__rate_interval]))",
           "legendFormat": "{{method}} {{uri}} {{status}}"
         }
-      ]
+      ],
+      "id": 6
     },
     {
       "type": "timeseries",
@@ -187,7 +193,8 @@
           "expr": "histogram_quantile(0.99, sum by (le, method, uri) (rate(http_server_requests_seconds_bucket{application=\"timedeal\", uri!~\"/actuator.*\"}[$__rate_interval])))",
           "legendFormat": "p99 {{method}} {{uri}}"
         }
-      ]
+      ],
+      "id": 7
     },
     {
       "type": "row",
@@ -198,7 +205,8 @@
         "w": 24,
         "x": 0,
         "y": 18
-      }
+      },
+      "id": 8
     },
     {
       "type": "timeseries",
@@ -241,7 +249,8 @@
           "expr": "sum(hikaricp_connections_max{application=\"timedeal\"})",
           "legendFormat": "max"
         }
-      ]
+      ],
+      "id": 9
     },
     {
       "type": "timeseries",
@@ -296,7 +305,8 @@
           "expr": "sum(rate(hikaricp_connections_timeout_total{application=\"timedeal\"}[$__rate_interval]))",
           "legendFormat": "timeout/s"
         }
-      ]
+      ],
+      "id": 10
     },
     {
       "type": "timeseries",
@@ -329,7 +339,8 @@
           "expr": "max(hikaricp_connections_usage_seconds_max{application=\"timedeal\"})",
           "legendFormat": "최대 점유 시간"
         }
-      ]
+      ],
+      "id": 11
     },
     {
       "type": "timeseries",
@@ -362,7 +373,8 @@
           "expr": "sum(tomcat_threads_config_max_threads{application=\"timedeal\"})",
           "legendFormat": "max"
         }
-      ]
+      ],
+      "id": 12
     },
     {
       "type": "row",
@@ -373,7 +385,8 @@
         "w": 24,
         "x": 0,
         "y": 35
-      }
+      },
+      "id": 13
     },
     {
       "type": "timeseries",
@@ -407,7 +420,8 @@
           "expr": "system_cpu_usage{application=\"timedeal\"}",
           "legendFormat": "system"
         }
-      ]
+      ],
+      "id": 14
     },
     {
       "type": "timeseries",
@@ -439,7 +453,8 @@
           "expr": "sum(jvm_memory_max_bytes{application=\"timedeal\", area=\"heap\"})",
           "legendFormat": "max"
         }
-      ]
+      ],
+      "id": 15
     },
     {
       "type": "timeseries",
@@ -466,7 +481,8 @@
           "expr": "sum by (gc) (rate(jvm_gc_pause_seconds_sum{application=\"timedeal\"}[$__rate_interval]))",
           "legendFormat": "{{gc}}"
         }
-      ]
+      ],
+      "id": 16
     }
   ]
 }

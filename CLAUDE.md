@@ -96,6 +96,7 @@
 | 부하 테스트 | K6 | 01단계부터 |
 | 모니터링 | Prometheus v3.15.0, Grafana 13.2.4 | 앱은 Actuator와 Micrometer로 지표를 노출한다. 대시보드는 `infra/grafana/dashboards/`에 코드로 관리한다 |
 | 비밀값 검사 | gitleaks v8.30.1 (Docker) | `make secret-scan` |
+| 그래프 캡처 | grafana-image-renderer v5.12.7 | `make capture`, 블로그 이미지는 `posts/images/`에 저장 |
 | 인프라 | Docker Compose | 모든 이미지 버전을 태그로 고정한다 (`latest` 금지) |
 
 - 아키텍처: **모놀리스로 시작해서 07단계에서 서비스로 분리한다.** 분리하는 이유 자체가 글 한 편이 된다.
@@ -126,6 +127,8 @@ make test    # 테스트 (Testcontainers로 MySQL을 띄움, Docker 필요)
 make down    # 인프라 종료
 make reset   # 인프라 종료 + 볼륨 삭제 (DB, Prometheus 데이터 초기화)
 make secret-scan  # push 전 비밀값 검사 (git 이력 전체와 작업 트리)
+make k6 SCRIPT=step01-load LABEL=baseline  # 데이터 초기화 → 부하 테스트 → 결과 저장 → 정합성 검사
+make capture NAME=step01-load FROM="2026-10-21 19:50:45" TO="2026-10-21 19:56:30"  # Grafana 패널 PNG → posts/images/<NAME>/
 ```
 
 | 주소 | 용도 |
