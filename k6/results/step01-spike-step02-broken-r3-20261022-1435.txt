@@ -1,0 +1,55 @@
+
+         /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+
+     execution: local
+        script: k6/scripts/step01-spike.js
+        output: Prometheus remote write (http://localhost:9090/api/v1/write)
+
+     scenarios: (100.00%) 1 scenario, 300 max VUs, 2m30s max duration (incl. graceful stop):
+              * timedeal_open: 1 iterations for each of 300 VUs (maxDuration: 2m0s, gracefulStop: 30s)
+
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 300     345.62212/s
+    checks_succeeded...: 100.00% 300 out of 300
+    checks_failed......: 0.00%   0 out of 300
+
+    ✓ status is 201 or 409
+
+    CUSTOM
+    orders_created.................: 300   345.62212/s
+
+    HTTP
+    http_req_duration..............: avg=558.38ms min=363.95ms med=543.16ms max=786.67ms p(90)=743.22ms p(95)=764.25ms
+      { expected_response:true }...: avg=558.38ms min=363.95ms med=543.16ms max=786.67ms p(90)=743.22ms p(95)=764.25ms
+    http_req_failed................: 0.00% 0 out of 300
+    http_reqs......................: 300   345.62212/s
+
+    EXECUTION
+    iteration_duration.............: avg=586.82ms min=369.91ms med=559.25ms max=862.53ms p(90)=799.9ms  p(95)=824.51ms
+    iterations.....................: 300   345.62212/s
+
+    NETWORK
+    data_received..................: 75 kB 87 kB/s
+    data_sent......................: 52 kB 60 kB/s
+
+
+
+
+running (0m00.9s), 000/300 VUs, 300 complete and 0 interrupted iterations
+timedeal_open ✓ [ 100% ] 300 VUs  0m00.9s/2m0s  300/300 iters, 1 per VU
+
+=== 정합성 검사 (step01-spike-step02-broken-r3-20261022-1435) ===
++------------+---------------+-----------------+---------------+-------------+------------------+
+| product_id | initial_stock | remaining_stock | sold_quantity | paid_orders | diff_should_be_0 |
++------------+---------------+-----------------+---------------+-------------+------------------+
+|          1 |           100 |              65 |           300 |         300 |              265 |
+|          2 |      10000000 |        10000000 |             0 |           0 |                0 |
++------------+---------------+-----------------+---------------+-------------+------------------+

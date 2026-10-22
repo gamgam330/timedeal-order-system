@@ -1,0 +1,60 @@
+
+         /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+
+     execution: local
+        script: k6/scripts/step01-spike.js
+        output: Prometheus remote write (http://localhost:9090/api/v1/write)
+
+     scenarios: (100.00%) 1 scenario, 300 max VUs, 2m30s max duration (incl. graceful stop):
+              * timedeal_open: 1 iterations for each of 300 VUs (maxDuration: 2m0s, gracefulStop: 30s)
+
+
+running (0m01.0s), 067/300 VUs, 233 complete and 0 interrupted iterations
+timedeal_open   [  78% ] 300 VUs  0m01.0s/2m0s  233/300 iters, 1 per VU
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 300     247.829223/s
+    checks_succeeded...: 100.00% 300 out of 300
+    checks_failed......: 0.00%   0 out of 300
+
+    ✓ status is 201 or 409
+
+    CUSTOM
+    orders_created.................: 300   247.829223/s
+
+    HTTP
+    http_req_duration..............: avg=809.14ms min=488.52ms med=814.81ms max=1.12s p(90)=1.03s p(95)=1.08s
+      { expected_response:true }...: avg=809.14ms min=488.52ms med=814.81ms max=1.12s p(90)=1.03s p(95)=1.08s
+    http_req_failed................: 0.00% 0 out of 300
+    http_reqs......................: 300   247.829223/s
+
+    EXECUTION
+    iteration_duration.............: avg=840.4ms  min=528.88ms med=841.51ms max=1.2s  p(90)=1.11s p(95)=1.15s
+    iterations.....................: 300   247.829223/s
+    vus............................: 67    min=67       max=67 
+    vus_max........................: 300   min=300      max=300
+
+    NETWORK
+    data_received..................: 75 kB 62 kB/s
+    data_sent......................: 52 kB 43 kB/s
+
+
+
+
+running (0m01.2s), 000/300 VUs, 300 complete and 0 interrupted iterations
+timedeal_open ✓ [ 100% ] 300 VUs  0m01.2s/2m0s  300/300 iters, 1 per VU
+
+=== 정합성 검사 (step01-spike-step02-broken-r1-20261022-1433) ===
++------------+---------------+-----------------+---------------+-------------+------------------+
+| product_id | initial_stock | remaining_stock | sold_quantity | paid_orders | diff_should_be_0 |
++------------+---------------+-----------------+---------------+-------------+------------------+
+|          1 |           100 |              64 |           300 |         300 |              264 |
+|          2 |      10000000 |        10000000 |             0 |           0 |                0 |
++------------+---------------+-----------------+---------------+-------------+------------------+
