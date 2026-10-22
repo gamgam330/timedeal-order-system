@@ -22,19 +22,20 @@ public class ProductService {
     /**
      * 재고를 차감하고, 차감된 상품을 돌려준다.
      * 호출한 쪽(OrderService)의 트랜잭션에 참여한다 (기본 전파 속성 REQUIRED).
+     * 비관적 락: 행을 잠근 채로 읽기 때문에, 커밋될 때까지 다른 주문은 같은 재고를 읽지 못하고 기다린다.
      */
     @Transactional
     public Product decreaseStock(Long productId, int quantity) {
-        Product product = productRepository.findById(productId)
+        Product product = productRepository.findByIdForUpdate(productId)
                 .orElseThrow(() -> new NotFoundException("product", productId));
         product.decreaseStock(quantity);
         return product;
     }
 
-    /** 결제 실패 시 예약했던 재고를 되돌린다 (보상). */
+    /** 결제 실패 시 예약했던 재고를 되돌린다 (보상). 차감과 같은 락을 걸어야 여기서도 갱신 손실이 생기지 않는다. */
     @Transactional
     public void increaseStock(Long productId, int quantity) {
-        Product product = productRepository.findById(productId)
+        Product product = productRepository.findByIdForUpdate(productId)
                 .orElseThrow(() -> new NotFoundException("product", productId));
         product.increaseStock(quantity);
     }

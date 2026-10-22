@@ -34,7 +34,7 @@ public class Product {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    // 조회한 값으로 계산해서 덮어쓴다 (read-modify-write). 락이 없다.
+    // 조회한 값으로 계산해서 덮어쓴다 (read-modify-write). 동시성은 조회할 때 거는 락이 책임진다.
     public void decreaseStock(int quantity) {
         if (stock < quantity) {
             throw new OutOfStockException(id, stock, quantity);
