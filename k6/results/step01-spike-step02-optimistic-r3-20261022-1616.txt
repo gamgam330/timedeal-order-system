@@ -1,0 +1,57 @@
+
+         /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+
+     execution: local
+        script: k6/scripts/step01-spike.js
+        output: Prometheus remote write (http://localhost:9090/api/v1/write)
+
+     scenarios: (100.00%) 1 scenario, 300 max VUs, 2m30s max duration (incl. graceful stop):
+              * timedeal_open: 1 iterations for each of 300 VUs (maxDuration: 2m0s, gracefulStop: 30s)
+
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 300     331.938454/s
+    checks_succeeded...: 100.00% 300 out of 300
+    checks_failed......: 0.00%   0 out of 300
+
+    ✓ status is 201 or 409
+
+    CUSTOM
+    orders_created.................: 100    110.646151/s
+    orders_sold_out................: 200    221.292303/s
+
+    HTTP
+    http_req_duration..............: avg=627.31ms min=317.12ms med=621.39ms max=887.94ms p(90)=718.2ms  p(95)=807ms   
+      { expected_response:true }...: avg=643.37ms min=317.12ms med=646.51ms max=887.94ms p(90)=838.92ms p(95)=856.64ms
+    http_req_failed................: 66.66% 200 out of 300
+    http_reqs......................: 300    331.938454/s
+
+    EXECUTION
+    iteration_duration.............: avg=630.47ms min=321.25ms med=625.4ms  max=888.21ms p(90)=729.5ms  p(95)=814.19ms
+    iterations.....................: 300    331.938454/s
+
+    NETWORK
+    data_received..................: 79 kB  88 kB/s
+    data_sent......................: 52 kB  58 kB/s
+
+
+
+
+running (0m00.9s), 000/300 VUs, 300 complete and 0 interrupted iterations
+timedeal_open ✓ [ 100% ] 300 VUs  0m00.9s/2m0s  300/300 iters, 1 per VU
+
+=== 정합성 검사 (step01-spike-step02-optimistic-r3-20261022-1616) ===
++------------+---------------+-----------------+---------------+-------------+------------------+
+| product_id | initial_stock | remaining_stock | sold_quantity | paid_orders | diff_should_be_0 |
++------------+---------------+-----------------+---------------+-------------+------------------+
+|          1 |           100 |               0 |           100 |         100 |                0 |
+|          2 |      10000000 |        10000000 |             0 |           0 |                0 |
++------------+---------------+-----------------+---------------+-------------+------------------+
+retries: 809
