@@ -7,6 +7,9 @@ import { Counter } from 'k6/metrics';
 const BASE_URL = __ENV.BASE_URL || 'http://localhost:8080';
 const PRODUCT_ID = 2;
 
+// 단계별 목표 RPS. 기본은 100,200,300. DB 락만 따로 보고 싶으면 PG 지연을 0으로 두고 RATES=400,800,1200 처럼 올린다.
+const RATES = (__ENV.RATES || '100,200,300').split(',').map(Number);
+
 const ordered = new Counter('orders_created');
 const errors = new Counter('orders_error');
 
@@ -18,14 +21,10 @@ export const options = {
       timeUnit: '1s',
       preAllocatedVUs: 300,
       maxVUs: 1500,
-      stages: [
-        { target: 100, duration: '15s' },
-        { target: 100, duration: '45s' },
-        { target: 200, duration: '15s' },
-        { target: 200, duration: '45s' },
-        { target: 300, duration: '15s' },
-        { target: 300, duration: '45s' },
-      ],
+      stages: RATES.flatMap((target) => [
+        { target, duration: '15s' },
+        { target, duration: '45s' },
+      ]),
     },
   },
   thresholds: {

@@ -56,5 +56,5 @@ k6: k6-reset ## 부하 테스트 실행 → 결과를 k6/results/에 저장하�
 	@echo "\n=== 정합성 검사 ($(RUN_ID)) ===" | tee -a k6/results/$(RUN_ID).txt
 	@$(MYSQL_TABLE) < k6/sql/check.sql | tee -a k6/results/$(RUN_ID).txt
 
-capture:     ## Grafana 패널을 PNG로 저장: make capture NAME=step01-load FROM="2026-10-21 19:50:45" TO="2026-10-21 19:56:30"
-	scripts/capture-grafana.sh "$(NAME)" "$(FROM)" "$(TO)"
+capture:     ## Grafana 패널을 PNG로 저장: make capture NAME=step01-load FROM="2026-10-21 19:50:45" TO="2026-10-21 19:56:30" [TESTID=<k6 실행 ID>]
+	scripts/capture-grafana.sh "$(NAME)" "$(FROM)" "$(TO)" "$(TESTID)"

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Grafana 패널을 PNG로 저장한다 (블로그용).
-# 사용법: scripts/capture-grafana.sh <이름> <시작 시각> <끝 시각>
+# 사용법: scripts/capture-grafana.sh <이름> <시작 시각> <끝 시각> [K6 testid]
+#   testid를 주면 K6 패널을 그 테스트로만 거른다 (직전 테스트의 남은 값이 섞이지 않게)
 #   예:   scripts/capture-grafana.sh step01-load "2026-10-21 19:50:45" "2026-10-21 19:56:15"
 # 결과:   posts/images/<이름>/<패널>.png  + 대시보드 전체 dashboard.png
 set -euo pipefail
@@ -18,7 +19,7 @@ DASH=timedeal-app
 OUT="$ROOT/posts/images/$NAME"
 mkdir -p "$OUT"
 
-COMMON="from=$FROM_MS&to=$TO_MS&tz=Asia%2FSeoul&theme=light"
+COMMON="from=$FROM_MS&to=$TO_MS&tz=Asia%2FSeoul&theme=light&var-testid=${4:-All}"
 
 # 패널 ID와 파일 이름 (infra/grafana/dashboards/timedeal-app.json의 id와 맞춘다)
 PANELS=(
