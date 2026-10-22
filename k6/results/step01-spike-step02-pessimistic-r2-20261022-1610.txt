@@ -1,0 +1,56 @@
+
+         /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+
+     execution: local
+        script: k6/scripts/step01-spike.js
+        output: Prometheus remote write (http://localhost:9090/api/v1/write)
+
+     scenarios: (100.00%) 1 scenario, 300 max VUs, 2m30s max duration (incl. graceful stop):
+              * timedeal_open: 1 iterations for each of 300 VUs (maxDuration: 2m0s, gracefulStop: 30s)
+
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 300     508.578878/s
+    checks_succeeded...: 100.00% 300 out of 300
+    checks_failed......: 0.00%   0 out of 300
+
+    ✓ status is 201 or 409
+
+    CUSTOM
+    orders_created.................: 100    169.526293/s
+    orders_sold_out................: 200    339.052585/s
+
+    HTTP
+    http_req_duration..............: avg=354ms    min=246.69ms med=306.94ms max=574.89ms p(90)=522.17ms p(95)=551.84ms
+      { expected_response:true }...: avg=477.47ms min=377.06ms med=471.22ms max=574.89ms p(90)=559.38ms p(95)=570.72ms
+    http_req_failed................: 66.66% 200 out of 300
+    http_reqs......................: 300    508.578878/s
+
+    EXECUTION
+    iteration_duration.............: avg=389.12ms min=279.62ms med=364.91ms max=585.1ms  p(90)=534.39ms p(95)=560.08ms
+    iterations.....................: 300    508.578878/s
+
+    NETWORK
+    data_received..................: 79 kB  134 kB/s
+    data_sent......................: 52 kB  88 kB/s
+
+
+
+
+running (0m00.6s), 000/300 VUs, 300 complete and 0 interrupted iterations
+timedeal_open ✓ [ 100% ] 300 VUs  0m00.6s/2m0s  300/300 iters, 1 per VU
+
+=== 정합성 검사 (step01-spike-step02-pessimistic-r2-20261022-1610) ===
++------------+---------------+-----------------+---------------+-------------+------------------+
+| product_id | initial_stock | remaining_stock | sold_quantity | paid_orders | diff_should_be_0 |
++------------+---------------+-----------------+---------------+-------------+------------------+
+|          1 |           100 |               0 |           100 |         100 |                0 |
+|          2 |      10000000 |        10000000 |             0 |           0 |                0 |
++------------+---------------+-----------------+---------------+-------------+------------------+
