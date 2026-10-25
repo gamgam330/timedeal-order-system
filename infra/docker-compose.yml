@@ -25,6 +25,24 @@ services:
       timeout: 3s
       retries: 20
 
+  redis:
+    image: redis:7.4.11
+    container_name: timedeal-redis
+    # 03단계부터: 분산 락. 락은 잠깐 쓰고 버리는 값이라 디스크 저장(RDB, AOF)을 끈다. 저장 작업이 측정에 섞이지 않게 하려는 목적도 있다
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    ports:
+      - "127.0.0.1:6379:6379" # 비밀번호 없는 로컬 전용이라 외부에서 접속하지 못하게 한다
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 512m
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
   prometheus:
     image: prom/prometheus:v3.15.0
     container_name: timedeal-prometheus

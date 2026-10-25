@@ -15,6 +15,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.TestPropertySource;
+import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -28,6 +29,11 @@ class OrderConcurrencyTest {
     @Container
     @ServiceConnection
     static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.4.11");
+
+    // 전용 모듈이 없어서 GenericContainer로 띄운다. name = "redis"로 지정하면 spring.data.redis.* 접속 정보가 자동으로 들어간다
+    @Container
+    @ServiceConnection(name = "redis")
+    static GenericContainer<?> redis = new GenericContainer<>("redis:7.4.11").withExposedPorts(6379);
 
     static final long PRODUCT_ID = 100L;
     static final int STOCK = 50;

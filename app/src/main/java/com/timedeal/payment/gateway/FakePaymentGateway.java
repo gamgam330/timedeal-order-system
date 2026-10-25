@@ -9,8 +9,8 @@ import org.springframework.stereotype.Component;
 /**
  * 외부 PG사를 흉내 낸다. 지연 시간과 실패율을 설정값으로 바꿔서 장애 상황을 재현한다.
  * - 01단계: 지연을 늘려 커넥션 고갈 재현
- * - 07단계: 타임아웃과 재시도로 인한 중복 결제 재현
- * - 08단계: 결제 실패로 보상 트랜잭션 확인
+ * - 08단계: 타임아웃과 재시도로 인한 중복 결제 재현
+ * - 09단계: 결제 실패로 보상 트랜잭션 확인
  */
 @Component
 @RequiredArgsConstructor

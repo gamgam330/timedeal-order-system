@@ -33,7 +33,7 @@ public class OrderService {
      * PG가 실패하면 이미 커밋된 트랜잭션1을 롤백할 수 없으므로 [트랜잭션3] 재고 복구 + 주문 FAILED 로 보상한다.
      *
      * 알려진 한계: PG 승인 후 트랜잭션2가 실패하거나 그 사이 서버가 죽으면
-     * 결제는 됐는데 주문이 PENDING으로 남는다. → 07단계(멱등성), 08단계(사가)에서 다룬다.
+     * 결제는 됐는데 주문이 PENDING으로 남는다. → 08단계(멱등성), 09단계(사가)에서 다룬다.
      */
     public Order placeOrder(Long userId, Long productId, int quantity) {
         Order order = transactionTemplate.execute(status -> {

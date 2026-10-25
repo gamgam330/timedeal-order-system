@@ -18,7 +18,7 @@ SCRIPT ?= step01-load
 LABEL ?= run
 RUN_ID := $(SCRIPT)-$(LABEL)-$(shell date +%Y%m%d-%H%M)
 
-up:          ## 인프라(MySQL, Prometheus, Grafana) 실행
+up:          ## 인프라(MySQL, Redis, Prometheus, Grafana) 실행
 	$(COMPOSE) up -d --wait
 
 down:        ## 인프라 종료

@@ -26,7 +26,7 @@ public class Order {
     @Column(nullable = false)
     private Long userId;
 
-    // 다른 도메인(Product)은 엔티티 연관관계 대신 ID로만 참조한다 → 08단계 서비스 분리 대비
+    // 다른 도메인(Product)은 엔티티 연관관계 대신 ID로만 참조한다 → 09단계 서비스 분리 대비
     @Column(nullable = false)
     private Long productId;
 

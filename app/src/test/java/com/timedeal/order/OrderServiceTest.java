@@ -14,11 +14,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.test.context.TestPropertySource;
+import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-// H2가 아니라 실제 MySQL에서 돌린다 (락 동작이 달라서 03단계 동시성 테스트를 믿을 수 없게 됨)
+// H2가 아니라 실제 MySQL에서 돌린다 (락 동작이 달라서 동시성 테스트를 믿을 수 없게 됨)
 @SpringBootTest
 @Testcontainers
 @TestPropertySource(properties = {"pg.latency-ms=0", "pg.failure-rate=0.0"})
@@ -27,6 +28,11 @@ class OrderServiceTest {
     @Container
     @ServiceConnection
     static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.4.11");
+
+    // 전용 모듈이 없어서 GenericContainer로 띄운다. name = "redis"로 지정하면 spring.data.redis.* 접속 정보가 자동으로 들어간다
+    @Container
+    @ServiceConnection(name = "redis")
+    static GenericContainer<?> redis = new GenericContainer<>("redis:7.4.11").withExposedPorts(6379);
 
     @Autowired
     OrderService orderService;
