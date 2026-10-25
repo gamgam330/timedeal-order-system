@@ -23,4 +23,10 @@ public class GlobalExceptionHandler {
     public ProblemDetail handlePaymentFailed(PaymentFailedException e) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.PAYMENT_REQUIRED, e.getMessage());
     }
+
+    // 락을 기다리다 포기한 경우. 잠시 뒤 다시 시도하면 되는 상황이라 503으로 응답한다
+    @ExceptionHandler(LockTimeoutException.class)
+    public ProblemDetail handleLockTimeout(LockTimeoutException e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.SERVICE_UNAVAILABLE, e.getMessage());
+    }
 }

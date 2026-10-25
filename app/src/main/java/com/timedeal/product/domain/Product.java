@@ -1,5 +1,6 @@
 package com.timedeal.product.domain;
 
+import com.timedeal.common.exception.OutOfStockException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -33,5 +34,15 @@ public class Product {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    // 재고 차감과 복구는 엔티티에서 계산하지 않고 ProductRepository의 UPDATE 문으로 처리한다 (갱신 손실 방지).
+    // 읽기-계산-쓰기라서 동시에 호출되면 갱신 손실이 생긴다. 호출하는 쪽에서 락으로 감싸야 한다.
+    public void decreaseStock(int quantity) {
+        if (stock < quantity) {
+            throw new OutOfStockException(id, stock, quantity);
+        }
+        this.stock -= quantity;
+    }
+
+    public void increaseStock(int quantity) {
+        this.stock += quantity;
+    }
 }
