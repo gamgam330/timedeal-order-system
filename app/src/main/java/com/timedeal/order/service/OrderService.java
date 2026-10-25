@@ -2,6 +2,7 @@ package com.timedeal.order.service;
 
 import com.timedeal.common.exception.NotFoundException;
 import com.timedeal.common.exception.PaymentFailedException;
+import com.timedeal.common.lock.RedisLock;
 import com.timedeal.order.domain.Order;
 import com.timedeal.order.domain.OrderStatus;
 import com.timedeal.order.repository.OrderRepository;
@@ -26,29 +27,35 @@ public class OrderService {
     // 같은 클래스 안에서 @Transactional 메서드를 호출하면 프록시를 거치지 않아 적용되지 않는다(self-invocation).
     // 그래서 트랜잭션 경계를 코드로 직접 연다.
     private final TransactionTemplate transactionTemplate;
+    private final RedisLock redisLock;
 
     /**
      * 주문 흐름. 외부 PG 호출을 DB 트랜잭션 밖으로 뺐다. (troubleshooting 001)
      * [트랜잭션1] 재고 예약 + 주문 PENDING → PG 승인(커넥션 없음) → [트랜잭션2] 결제 저장 + 주문 PAID
      * PG가 실패하면 이미 커밋된 트랜잭션1을 롤백할 수 없으므로 [트랜잭션3] 재고 복구 + 주문 FAILED 로 보상한다.
      *
+     * 재고를 바꾸는 트랜잭션1과 3은 Redis 락이 바깥에서 감싼다: 락 획득 → 트랜잭션 → 커밋 → 락 해제.
+     * 락이 커밋보다 먼저 풀리면 다음 요청이 커밋 전 재고를 읽는다. 락을 트랜잭션 밖에서 기다리므로 대기 중에는 커넥션을 쥐지 않는다.
+     *
      * 알려진 한계: PG 승인 후 트랜잭션2가 실패하거나 그 사이 서버가 죽으면
      * 결제는 됐는데 주문이 PENDING으로 남는다. → 08단계(멱등성), 09단계(사가)에서 다룬다.
      */
     public Order placeOrder(Long userId, Long productId, int quantity) {
-        Order order = transactionTemplate.execute(status -> {
+        String lockKey = ProductService.stockLockKey(productId);
+        Order order = redisLock.executeWithLock(lockKey, () -> transactionTemplate.execute(status -> {
             Product product = productService.decreaseStock(productId, quantity);
             return orderRepository.save(Order.create(userId, productId, quantity, product.getPrice()));
-        });
+        }));
 
         String pgTransactionId;
         try {
             pgTransactionId = paymentService.requestApproval(order.getId(), order.getTotalPrice());
         } catch (PaymentFailedException e) {
-            transactionTemplate.executeWithoutResult(status -> {
+            redisLock.executeWithLock(lockKey, () -> transactionTemplate.execute(status -> {
                 productService.increaseStock(productId, quantity);
                 findOrder(order.getId()).markFailed();
-            });
+                return null;
+            }));
             throw e;
         }
 

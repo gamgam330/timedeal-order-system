@@ -483,6 +483,124 @@
         }
       ],
       "id": 16
+    },
+    {
+      "type": "row",
+      "title": "분산 락 (Redis): 03단계부터",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 44
+      },
+      "id": 17
+    },
+    {
+      "type": "timeseries",
+      "title": "락 대기 시간 p95 / max",
+      "description": "획득 시간이 길어지면 요청이 DB가 아니라 '커넥션 줄 서기'에서 시간을 쓰고 있는 것이다",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 45
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "timeout/s"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": null,
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(stock_lock_wait_seconds_bucket{application=\"timedeal\"}[$__rate_interval])))",
+          "legendFormat": "p95",
+          "refId": "A"
+        },
+        {
+          "datasource": null,
+          "expr": "max(stock_lock_wait_seconds_max{application=\"timedeal\"})",
+          "legendFormat": "max",
+          "refId": "B"
+        }
+      ],
+      "id": 18
+    },
+    {
+      "type": "timeseries",
+      "title": "락 획득 시도와 성공 (초당)",
+      "description": "획득 시간이 길어지면 요청이 DB가 아니라 '커넥션 줄 서기'에서 시간을 쓰고 있는 것이다",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 45
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "timeout/s"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": null,
+          "expr": "sum(rate(stock_lock_attempts_total{application=\"timedeal\"}[$__rate_interval]))",
+          "legendFormat": "SET NX 시도",
+          "refId": "A"
+        },
+        {
+          "datasource": null,
+          "expr": "sum(rate(stock_lock_wait_seconds_count{application=\"timedeal\"}[$__rate_interval]))",
+          "legendFormat": "락 획득",
+          "refId": "B"
+        }
+      ],
+      "id": 19
     }
   ],
   "templating": {

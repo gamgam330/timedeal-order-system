@@ -35,6 +35,8 @@ PANELS=(
   "14:cpu"
   "15:heap"
   "16:gc"
+  "18:lock-wait"
+  "19:lock-attempts"
 )
 
 for entry in "${PANELS[@]}"; do
