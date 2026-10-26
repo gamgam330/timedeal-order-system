@@ -24,7 +24,7 @@ public Product decreaseStock(Long productId, int quantity) {
 - `OrderConcurrencyTest`(재고 50, 100스레드): `expected: 50 but was: 100`
 - 스파이크(재고 100, 300명):
 
-| 회차 | 성공 | 품절 | 남은 재고 | 초과 판매(diff) | p95 |
+| 회차 | 성공 | 품절 | 남은 재고 | 장부 불일치(남은 재고 + 판매 − 100) | p95 |
 |---|---|---|---|---|---|
 | 1 | 248 | 52 | 0 | 148 | 1.35초 |
 | 2 | 299 | 1 | 0 | 199 | 1.03초 |
