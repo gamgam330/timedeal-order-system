@@ -1,0 +1,61 @@
+
+         /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+
+     execution: local
+        script: k6/scripts/step01-spike.js
+        output: Prometheus remote write (http://localhost:9090/api/v1/write)
+
+     scenarios: (100.00%) 1 scenario, 300 max VUs, 2m30s max duration (incl. graceful stop):
+              * timedeal_open: 1 iterations for each of 300 VUs (maxDuration: 2m0s, gracefulStop: 30s)
+
+
+running (0m01.0s), 106/300 VUs, 194 complete and 0 interrupted iterations
+timedeal_open   [  65% ] 300 VUs  0m01.0s/2m0s  194/300 iters, 1 per VU
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 300     217.806083/s
+    checks_succeeded...: 100.00% 300 out of 300
+    checks_failed......: 0.00%   0 out of 300
+
+    ✓ status is 201 or 409
+
+    CUSTOM
+    orders_created.................: 100    72.602028/s
+    orders_sold_out................: 200    145.204055/s
+
+    HTTP
+    http_req_duration..............: avg=806ms    min=37.64ms med=879.09ms max=1.34s    p(90)=1.15s    p(95)=1.21s   
+      { expected_response:true }...: avg=435.08ms min=37.64ms med=448.03ms max=753.48ms p(90)=701.33ms p(95)=733.88ms
+    http_req_failed................: 66.66% 200 out of 300
+    http_reqs......................: 300    217.806083/s
+
+    EXECUTION
+    iteration_duration.............: avg=821.61ms min=42.23ms med=894.6ms  max=1.37s    p(90)=1.16s    p(95)=1.23s   
+    iterations.....................: 300    217.806083/s
+    vus............................: 106    min=106        max=106
+    vus_max........................: 300    min=300        max=300
+
+    NETWORK
+    data_received..................: 79 kB  58 kB/s
+    data_sent......................: 52 kB  38 kB/s
+
+
+
+
+running (0m01.4s), 000/300 VUs, 300 complete and 0 interrupted iterations
+timedeal_open ✓ [ 100% ] 300 VUs  0m01.4s/2m0s  300/300 iters, 1 per VU
+
+=== 정합성 검사 (step01-spike-step03-2srv-redislock-r1-s2-20261026-0921) ===
++------------+---------------+-----------------+---------------+-------------+------------------+
+| product_id | initial_stock | remaining_stock | sold_quantity | paid_orders | diff_should_be_0 |
++------------+---------------+-----------------+---------------+-------------+------------------+
+|          1 |           100 |               0 |           100 |         100 |                0 |
+|          2 |      10000000 |        10000000 |             0 |           0 |                0 |
++------------+---------------+-----------------+---------------+-------------+------------------+

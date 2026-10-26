@@ -1,0 +1,64 @@
+
+         /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+
+     execution: local
+        script: k6/scripts/step01-spike.js
+        output: Prometheus remote write (http://localhost:9090/api/v1/write)
+
+     scenarios: (100.00%) 1 scenario, 300 max VUs, 2m30s max duration (incl. graceful stop):
+              * timedeal_open: 1 iterations for each of 300 VUs (maxDuration: 2m0s, gracefulStop: 30s)
+
+
+running (0m01.0s), 243/300 VUs, 57 complete and 0 interrupted iterations
+timedeal_open   [  19% ] 300 VUs  0m01.0s/2m0s  057/300 iters, 1 per VU
+
+running (0m02.0s), 086/300 VUs, 214 complete and 0 interrupted iterations
+timedeal_open   [  71% ] 300 VUs  0m02.0s/2m0s  214/300 iters, 1 per VU
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 300     123.131075/s
+    checks_succeeded...: 100.00% 300 out of 300
+    checks_failed......: 0.00%   0 out of 300
+
+    ✓ status is 201 or 409
+
+    CUSTOM
+    orders_created.................: 100    41.043692/s
+    orders_sold_out................: 200    82.087384/s
+
+    HTTP
+    http_req_duration..............: avg=1.56s    min=325.97ms med=1.64s    max=2.42s p(90)=2.17s p(95)=2.25s
+      { expected_response:true }...: avg=933.56ms min=325.97ms med=906.56ms max=1.41s p(90)=1.35s p(95)=1.37s
+    http_req_failed................: 66.66% 200 out of 300
+    http_reqs......................: 300    123.131075/s
+
+    EXECUTION
+    iteration_duration.............: avg=1.58s    min=337.71ms med=1.66s    max=2.43s p(90)=2.19s p(95)=2.26s
+    iterations.....................: 300    123.131075/s
+    vus............................: 86     min=86         max=244
+    vus_max........................: 300    min=300        max=300
+
+    NETWORK
+    data_received..................: 79 kB  33 kB/s
+    data_sent......................: 52 kB  21 kB/s
+
+
+
+
+running (0m02.4s), 000/300 VUs, 300 complete and 0 interrupted iterations
+timedeal_open ✓ [ 100% ] 300 VUs  0m02.4s/2m0s  300/300 iters, 1 per VU
+
+=== 정합성 검사 (step01-spike-step03-2srv-redislock-r1-s1-20261026-0920) ===
++------------+---------------+-----------------+---------------+-------------+------------------+
+| product_id | initial_stock | remaining_stock | sold_quantity | paid_orders | diff_should_be_0 |
++------------+---------------+-----------------+---------------+-------------+------------------+
+|          1 |           100 |               0 |           100 |         100 |                0 |
+|          2 |      10000000 |        10000000 |             0 |           0 |                0 |
++------------+---------------+-----------------+---------------+-------------+------------------+

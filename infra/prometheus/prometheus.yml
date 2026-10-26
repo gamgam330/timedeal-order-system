@@ -7,4 +7,5 @@ scrape_configs:
   - job_name: timedeal-app
     metrics_path: /actuator/prometheus
     static_configs:
-      - targets: ["host.docker.internal:8081"] # 관리 포트
+      # 관리 포트. 8083은 서버 2대로 측정할 때 두 번째 앱 (03단계). 앱이 1대면 8083은 down으로 보일 뿐 영향 없다
+      - targets: ["host.docker.internal:8081", "host.docker.internal:8083"]

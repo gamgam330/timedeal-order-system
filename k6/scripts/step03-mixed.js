@@ -5,7 +5,9 @@ import { Counter } from 'k6/metrics';
 // 인기 상품(2번) 주문이 몰리는 동안, 상관없는 상품 조회(1번)가 함께 들어오면 조회도 느려지는가?
 // 락을 DB 안에서 기다리면(비관적 락, 원자적 UPDATE) 대기자가 커넥션을 쥐고 있어서 조회도 커넥션을 기다린다는 가설을 확인한다.
 // 두 시나리오의 지연은 scenario 태그로 따로 본다.
-const BASE_URL = __ENV.BASE_URL || 'http://localhost:8080';
+// 서버 여러 대로 측정할 때는 BASE_URLS=http://localhost:8080,http://localhost:8082 처럼 주면 요청을 번갈아 보낸다 (03단계)
+const BASE_URLS = (__ENV.BASE_URLS || __ENV.BASE_URL || 'http://localhost:8080').split(',');
+const baseUrl = () => BASE_URLS[(__VU + __ITER) % BASE_URLS.length];
 const HOT_PRODUCT_ID = 2;
 const OTHER_PRODUCT_ID = 1;
 
@@ -52,7 +54,7 @@ export const options = {
 
 export function hotOrder() {
   const payload = JSON.stringify({ userId: __VU, productId: HOT_PRODUCT_ID, quantity: 1 });
-  const res = http.post(`${BASE_URL}/api/orders`, payload, {
+  const res = http.post(`${baseUrl()}/api/orders`, payload, {
     headers: { 'Content-Type': 'application/json' },
     timeout: '60s',
     tags: { name: 'POST /api/orders' },
@@ -65,7 +67,7 @@ export function hotOrder() {
 }
 
 export function browse() {
-  const res = http.get(`${BASE_URL}/api/products/${OTHER_PRODUCT_ID}`, {
+  const res = http.get(`${baseUrl()}/api/products/${OTHER_PRODUCT_ID}`, {
     timeout: '60s',
     tags: { name: 'GET /api/products/{id}' },
   });
