@@ -48,11 +48,15 @@ k6-check:    ## 정합성 검사: 남은 재고 + 판매 수량 = 초기 재고 
 	$(MYSQL_TABLE) < k6/sql/check.sql
 
 k6: k6-reset ## 부하 테스트 실행 → 결과를 k6/results/에 저장하고 Prometheus로 전송 (caffeinate: 테스트 중 맥 잠자기 방지)
+	@$(MYSQL_EXEC) < k6/sql/db-stats.sql > k6/results/.$(RUN_ID).dbstats
 	K6_PROMETHEUS_RW_SERVER_URL=http://localhost:9090/api/v1/write \
 	K6_PROMETHEUS_RW_TREND_STATS='p(95),p(99),avg,max' \
 	caffeinate -dimu k6 run -o experimental-prometheus-rw --tag testid=$(RUN_ID) \
 		--summary-export k6/results/$(RUN_ID).json \
 		k6/scripts/$(SCRIPT).js 2>&1 | tee k6/results/$(RUN_ID).txt; true
+	@echo "\n=== 테스트 중 DB가 실행한 문장 수 ($(RUN_ID)) ===" | tee -a k6/results/$(RUN_ID).txt
+	@$(MYSQL_EXEC) < k6/sql/db-stats.sql | awk 'NR==FNR { before[$$1] = $$2; next } FNR > 1 { printf "%-14s %d\n", $$1, $$2 - before[$$1] }' k6/results/.$(RUN_ID).dbstats - | tee -a k6/results/$(RUN_ID).txt
+	@rm -f k6/results/.$(RUN_ID).dbstats
 	@echo "\n=== 정합성 검사 ($(RUN_ID)) ===" | tee -a k6/results/$(RUN_ID).txt
 	@$(MYSQL_TABLE) < k6/sql/check.sql | tee -a k6/results/$(RUN_ID).txt
 
