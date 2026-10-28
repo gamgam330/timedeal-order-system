@@ -61,8 +61,13 @@ k6: k6-reset ## 부하 테스트 실행 → 결과를 k6/results/에 저장하�
 	@rm -f k6/results/.$(RUN_ID).dbstats
 	@echo "\n=== 정합성 검사 ($(RUN_ID)) ===" | tee -a k6/results/$(RUN_ID).txt
 	@$(MYSQL_TABLE) < k6/sql/check.sql | tee -a k6/results/$(RUN_ID).txt
-	@echo "Redis 재고 숫자 (stock:product:1, stock:product:2)" | tee -a k6/results/$(RUN_ID).txt
-	@docker exec timedeal-redis redis-cli MGET stock:product:1 stock:product:2 | tee -a k6/results/$(RUN_ID).txt
+	@# 04단계: DB 장부가 맞아도 Redis 숫자와 DB 재고가 어긋나면 팔 수 있는 재고를 못 판다. 둘이 같은지 본다
+	@for id in 1 2; do \
+		db=$$(echo "SELECT stock FROM product WHERE id = $$id" | $(MYSQL_EXEC) | tail -1); \
+		rd=$$(docker exec timedeal-redis redis-cli GET stock:product:$$id); \
+		if [ "$$db" = "$$rd" ]; then result=OK; else result=MISMATCH; fi; \
+		echo "product $$id: DB 재고 $$db / Redis 숫자 $$rd → $$result"; \
+	done | tee -a k6/results/$(RUN_ID).txt
 
 capture:     ## Grafana 패널을 PNG로 저장: make capture NAME=step01-load FROM="2026-10-21 19:50:45" TO="2026-10-21 19:56:30" [TESTID=<k6 실행 ID>]
 	scripts/capture-grafana.sh "$(NAME)" "$(FROM)" "$(TO)" "$(TESTID)"

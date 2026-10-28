@@ -36,20 +36,27 @@ public class OrderService {
      * PG가 실패하면 이미 커밋된 트랜잭션1을 롤백할 수 없으므로 [트랜잭션3] 재고 복구 + 주문 FAILED 로 보상한다.
      *
      * 트랜잭션1 전에 Redis 재고 숫자부터 줄인다. 모자라면 DB에 가지 않고 바로 품절로 응답한다. (troubleshooting 004)
+     * Redis 숫자가 DB 재고보다 커지지 않게 순서를 지킨다: 줄일 때는 Redis 먼저, 되돌릴 때는 DB를 되돌린 뒤 Redis.
+     * 트랜잭션1이 실패하거나 PG가 실패하면 Redis 숫자도 되돌린다. 되돌리기 전에 서버가 죽으면 Redis가 DB보다 작게 남는다(덜 팔림).
      *
      * 알려진 한계: PG 승인 후 트랜잭션2가 실패하거나 그 사이 서버가 죽으면
      * 결제는 됐는데 주문이 PENDING으로 남는다. → 08단계(멱등성), 09단계(사가)에서 다룬다.
      */
     public Order placeOrder(Long userId, Long productId, int quantity) {
-        long left = stockCounter.decrease(productId, quantity);
-        if (left < 0) {
-            throw new OutOfStockException(productId, (int) (left + quantity), quantity);
+        if (!stockCounter.tryDecrease(productId, quantity)) {
+            throw new OutOfStockException(productId, quantity);
         }
 
-        Order order = transactionTemplate.execute(status -> {
-            Product product = productService.decreaseStock(productId, quantity);
-            return orderRepository.save(Order.create(userId, productId, quantity, product.getPrice()));
-        });
+        Order order;
+        try {
+            order = transactionTemplate.execute(status -> {
+                Product product = productService.decreaseStock(productId, quantity);
+                return orderRepository.save(Order.create(userId, productId, quantity, product.getPrice()));
+            });
+        } catch (RuntimeException e) {
+            stockCounter.increase(productId, quantity); // 트랜잭션1은 롤백됐으므로 DB 재고는 그대로다
+            throw e;
+        }
 
         String pgTransactionId;
         try {
@@ -59,6 +66,7 @@ public class OrderService {
                 productService.increaseStock(productId, quantity);
                 findOrder(order.getId()).markFailed();
             });
+            stockCounter.increase(productId, quantity); // DB 재고를 되돌린 뒤에 Redis를 늘린다
             throw e;
         }
 

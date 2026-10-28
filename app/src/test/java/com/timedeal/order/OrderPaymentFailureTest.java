@@ -65,6 +65,7 @@ class OrderPaymentFailureTest {
                 .isInstanceOf(PaymentFailedException.class);
 
         assertThat(productService.getProduct(1L).getStock()).isEqualTo(before);
+        assertThat(stockCounter.current(1L)).as("Redis 재고 숫자도 되돌린다").isEqualTo(before);
         assertThat(orderRepository.findAll())
                 .singleElement()
                 .satisfies(order -> assertThat(order.getStatus()).isEqualTo(OrderStatus.FAILED));
