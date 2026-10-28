@@ -1,0 +1,75 @@
+
+         /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+
+     execution: local
+        script: k6/scripts/step01-spike.js
+        output: Prometheus remote write (http://localhost:9090/api/v1/write)
+
+     scenarios: (100.00%) 1 scenario, 300 max VUs, 2m30s max duration (incl. graceful stop):
+              * timedeal_open: 1 iterations for each of 300 VUs (maxDuration: 2m0s, gracefulStop: 30s)
+
+
+running (0m01.0s), 034/300 VUs, 266 complete and 0 interrupted iterations
+timedeal_open   [  89% ] 300 VUs  0m01.0s/2m0s  266/300 iters, 1 per VU
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 300    286.814013/s
+    checks_succeeded...: 92.66% 278 out of 300
+    checks_failed......: 7.33%  22 out of 300
+
+    ✗ status is 201 or 409
+      ↳  92% — ✓ 278 / ✗ 22
+
+    CUSTOM
+    orders_created.................: 78     74.571643/s
+    orders_error...................: 22     21.033028/s
+    orders_sold_out................: 200    191.209342/s
+
+    HTTP
+    http_req_duration..............: avg=583.09ms min=382.97ms med=434.98ms max=1.03s p(90)=956.44ms p(95)=989.28ms
+      { expected_response:true }...: avg=917.18ms min=786.4ms  med=933.75ms max=1.03s p(90)=998.03ms p(95)=1.01s   
+    http_req_failed................: 74.00% 222 out of 300
+    http_reqs......................: 300    286.814013/s
+
+    EXECUTION
+    iteration_duration.............: avg=618.69ms min=438.4ms  med=466.84ms max=1.04s p(90)=982.59ms p(95)=1.01s   
+    iterations.....................: 300    286.814013/s
+    vus............................: 34     min=34         max=34 
+    vus_max........................: 300    min=300        max=300
+
+    NETWORK
+    data_received..................: 80 kB  76 kB/s
+    data_sent......................: 52 kB  50 kB/s
+
+
+
+
+running (0m01.0s), 000/300 VUs, 300 complete and 0 interrupted iterations
+timedeal_open ✓ [ 100% ] 300 VUs  0m01.0s/2m0s  300/300 iters, 1 per VU
+
+=== 테스트 중 DB 문장 수와 행 락 대기 (step01-spike-step04-broken-pg20-r1-20261028-1429) ===
+Com_commit     200
+Com_insert     178
+Com_rollback   0
+Com_select     201
+Com_update     222
+Innodb_row_lock_time 2372
+Innodb_row_lock_waits 109
+
+=== 정합성 검사 (step01-spike-step04-broken-pg20-r1-20261028-1429) ===
++------------+---------------+-----------------+---------------+-------------+------------------+
+| product_id | initial_stock | remaining_stock | sold_quantity | paid_orders | diff_should_be_0 |
++------------+---------------+-----------------+---------------+-------------+------------------+
+|          1 |           100 |              22 |            78 |          78 |                0 |
+|          2 |      10000000 |        10000000 |             0 |           0 |                0 |
++------------+---------------+-----------------+---------------+-------------+------------------+
+Redis 재고 숫자 (stock:product:1, stock:product:2)
+-200
+10000000

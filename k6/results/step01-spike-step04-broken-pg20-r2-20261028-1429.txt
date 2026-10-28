@@ -1,0 +1,70 @@
+
+         /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+
+     execution: local
+        script: k6/scripts/step01-spike.js
+        output: Prometheus remote write (http://localhost:9090/api/v1/write)
+
+     scenarios: (100.00%) 1 scenario, 300 max VUs, 2m30s max duration (incl. graceful stop):
+              * timedeal_open: 1 iterations for each of 300 VUs (maxDuration: 2m0s, gracefulStop: 30s)
+
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 300    500.783727/s
+    checks_succeeded...: 94.33% 283 out of 300
+    checks_failed......: 5.66%  17 out of 300
+
+    ✗ status is 201 or 409
+      ↳  94% — ✓ 283 / ✗ 17
+
+    CUSTOM
+    orders_created.................: 83     138.550164/s
+    orders_error...................: 17     28.377745/s
+    orders_sold_out................: 200    333.855818/s
+
+    HTTP
+    http_req_duration..............: avg=179.23ms min=6.67ms   med=33.48ms  max=585.09ms p(90)=532.5ms  p(95)=556.18ms
+      { expected_response:true }...: avg=479.94ms min=325.96ms med=483.53ms max=585.09ms p(90)=567.98ms p(95)=578.09ms
+    http_req_failed................: 72.33% 217 out of 300
+    http_reqs......................: 300    500.783727/s
+
+    EXECUTION
+    iteration_duration.............: avg=208.38ms min=34.11ms  med=72.87ms  max=597.63ms p(90)=544.52ms p(95)=569.61ms
+    iterations.....................: 300    500.783727/s
+
+    NETWORK
+    data_received..................: 80 kB  133 kB/s
+    data_sent......................: 52 kB  87 kB/s
+
+
+
+
+running (0m00.6s), 000/300 VUs, 300 complete and 0 interrupted iterations
+timedeal_open ✓ [ 100% ] 300 VUs  0m00.6s/2m0s  300/300 iters, 1 per VU
+
+=== 테스트 중 DB 문장 수와 행 락 대기 (step01-spike-step04-broken-pg20-r2-20261028-1429) ===
+Com_commit     200
+Com_insert     183
+Com_rollback   0
+Com_select     201
+Com_update     217
+Innodb_row_lock_time 2230
+Innodb_row_lock_waits 102
+
+=== 정합성 검사 (step01-spike-step04-broken-pg20-r2-20261028-1429) ===
++------------+---------------+-----------------+---------------+-------------+------------------+
+| product_id | initial_stock | remaining_stock | sold_quantity | paid_orders | diff_should_be_0 |
++------------+---------------+-----------------+---------------+-------------+------------------+
+|          1 |           100 |              17 |            83 |          83 |                0 |
+|          2 |      10000000 |        10000000 |             0 |           0 |                0 |
++------------+---------------+-----------------+---------------+-------------+------------------+
+Redis 재고 숫자 (stock:product:1, stock:product:2)
+-200
+10000000
