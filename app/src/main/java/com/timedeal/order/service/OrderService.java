@@ -1,6 +1,7 @@
 package com.timedeal.order.service;
 
 import com.timedeal.common.exception.NotFoundException;
+import com.timedeal.common.exception.OutOfStockException;
 import com.timedeal.common.exception.PaymentFailedException;
 import com.timedeal.order.domain.Order;
 import com.timedeal.order.domain.OrderStatus;
@@ -8,6 +9,7 @@ import com.timedeal.order.repository.OrderRepository;
 import com.timedeal.payment.service.PaymentService;
 import com.timedeal.product.domain.Product;
 import com.timedeal.product.service.ProductService;
+import com.timedeal.product.service.StockCounter;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Limit;
@@ -23,6 +25,7 @@ public class OrderService {
     // 다른 도메인은 Repository가 아니라 Service를 통해서만 호출한다
     private final ProductService productService;
     private final PaymentService paymentService;
+    private final StockCounter stockCounter;
     // 같은 클래스 안에서 @Transactional 메서드를 호출하면 프록시를 거치지 않아 적용되지 않는다(self-invocation).
     // 그래서 트랜잭션 경계를 코드로 직접 연다.
     private final TransactionTemplate transactionTemplate;
@@ -32,10 +35,17 @@ public class OrderService {
      * [트랜잭션1] 재고 예약 + 주문 PENDING → PG 승인(커넥션 없음) → [트랜잭션2] 결제 저장 + 주문 PAID
      * PG가 실패하면 이미 커밋된 트랜잭션1을 롤백할 수 없으므로 [트랜잭션3] 재고 복구 + 주문 FAILED 로 보상한다.
      *
+     * 트랜잭션1 전에 Redis 재고 숫자부터 줄인다. 모자라면 DB에 가지 않고 바로 품절로 응답한다. (troubleshooting 004)
+     *
      * 알려진 한계: PG 승인 후 트랜잭션2가 실패하거나 그 사이 서버가 죽으면
      * 결제는 됐는데 주문이 PENDING으로 남는다. → 08단계(멱등성), 09단계(사가)에서 다룬다.
      */
     public Order placeOrder(Long userId, Long productId, int quantity) {
+        long left = stockCounter.decrease(productId, quantity);
+        if (left < 0) {
+            throw new OutOfStockException(productId, (int) (left + quantity), quantity);
+        }
+
         Order order = transactionTemplate.execute(status -> {
             Product product = productService.decreaseStock(productId, quantity);
             return orderRepository.save(Order.create(userId, productId, quantity, product.getPrice()));

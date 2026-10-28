@@ -41,8 +41,10 @@ secret-scan: ## push 전에 반드시 실행: git 이력 전체와 작업 트리
 	docker run --rm -v "$(CURDIR)":/repo $(GITLEAKS_IMAGE) git /repo --redact -v
 	docker run --rm -v "$(CURDIR)":/repo $(GITLEAKS_IMAGE) dir /repo --redact -v
 
-k6-reset:    ## 부하 테스트 데이터 초기화 (주문/결제 삭제, 재고 복구)
+k6-reset:    ## 부하 테스트 데이터 초기화 (주문/결제 삭제, 재고 복구, Redis 재고 숫자 적재)
 	$(MYSQL_EXEC) < k6/sql/reset.sql
+	@# 04단계: 딜 오픈 전에 Redis 재고 숫자를 DB 재고와 같은 값으로 넣는다 (reset.sql의 값과 맞춘다)
+	docker exec timedeal-redis redis-cli MSET stock:product:1 100 stock:product:2 10000000
 
 k6-check:    ## 정합성 검사: 남은 재고 + 판매 수량 = 초기 재고 인가?
 	$(MYSQL_TABLE) < k6/sql/check.sql
@@ -59,6 +61,8 @@ k6: k6-reset ## 부하 테스트 실행 → 결과를 k6/results/에 저장하�
 	@rm -f k6/results/.$(RUN_ID).dbstats
 	@echo "\n=== 정합성 검사 ($(RUN_ID)) ===" | tee -a k6/results/$(RUN_ID).txt
 	@$(MYSQL_TABLE) < k6/sql/check.sql | tee -a k6/results/$(RUN_ID).txt
+	@echo "Redis 재고 숫자 (stock:product:1, stock:product:2)" | tee -a k6/results/$(RUN_ID).txt
+	@docker exec timedeal-redis redis-cli MGET stock:product:1 stock:product:2 | tee -a k6/results/$(RUN_ID).txt
 
 capture:     ## Grafana 패널을 PNG로 저장: make capture NAME=step01-load FROM="2026-10-21 19:50:45" TO="2026-10-21 19:56:30" [TESTID=<k6 실행 ID>]
 	scripts/capture-grafana.sh "$(NAME)" "$(FROM)" "$(TO)" "$(TESTID)"

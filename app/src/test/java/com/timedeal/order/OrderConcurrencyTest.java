@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.timedeal.common.exception.OutOfStockException;
 import com.timedeal.order.service.OrderService;
 import com.timedeal.product.service.ProductService;
+import com.timedeal.product.service.StockCounter;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -46,12 +47,16 @@ class OrderConcurrencyTest {
     ProductService productService;
 
     @Autowired
+    StockCounter stockCounter;
+
+    @Autowired
     JdbcTemplate jdbcTemplate;
 
     @Test
     void 동시에_주문해도_재고보다_많이_팔리지_않는다() throws InterruptedException {
         jdbcTemplate.update("INSERT INTO product (id, name, price, stock, created_at) VALUES (?, '동시성 테스트', 1000, ?, NOW(6))",
                 PRODUCT_ID, STOCK);
+        stockCounter.load(PRODUCT_ID, STOCK);
 
         AtomicInteger success = new AtomicInteger();
         AtomicInteger soldOut = new AtomicInteger();

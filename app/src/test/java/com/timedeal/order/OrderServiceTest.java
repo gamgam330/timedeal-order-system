@@ -9,6 +9,8 @@ import com.timedeal.order.domain.OrderStatus;
 import com.timedeal.order.service.OrderService;
 import com.timedeal.payment.repository.PaymentRepository;
 import com.timedeal.product.service.ProductService;
+import com.timedeal.product.service.StockCounter;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -39,6 +41,15 @@ class OrderServiceTest {
 
     @Autowired
     ProductService productService;
+
+    @Autowired
+    StockCounter stockCounter;
+
+    // 딜 오픈 전 적재: Redis 재고 숫자를 DB 재고와 맞춘다
+    @BeforeEach
+    void loadStockCounter() {
+        stockCounter.load(1L, productService.getProduct(1L).getStock());
+    }
 
     @Autowired
     PaymentRepository paymentRepository;
