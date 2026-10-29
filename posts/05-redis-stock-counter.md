@@ -35,7 +35,7 @@
 
 ## 지난 글에서 남은 문제
 
-[지난 글(#04)](링크)에서 Redis 분산 락을 붙여 봤다가, 재고 차감은 결국 원자적 UPDATE로 돌아왔다.
+[지난 글(#04)](https://90000e.tistory.com/23)에서 Redis 분산 락을 붙여 봤다가, 재고 차감은 결국 원자적 UPDATE로 돌아왔다.
 
 ```sql
 UPDATE product SET stock = stock - 1 WHERE id = 1 AND stock >= 1
