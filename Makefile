@@ -1,4 +1,4 @@
-.PHONY: up down reset run run-perf test secret-scan k6 k6-reset k6-check capture
+.PHONY: up down reset run run-perf test secret-scan k6 k6-reset k6-check seed capture
 
 GITLEAKS_IMAGE := zricethezav/gitleaks:v8.30.1
 COMPOSE := docker compose -f infra/docker-compose.yml
@@ -17,6 +17,8 @@ APP_ARGS ?=
 SCRIPT ?= step01-load
 LABEL ?= run
 RUN_ID := $(SCRIPT)-$(LABEL)-$(shell date +%Y%m%d-%H%M)
+# 05단계: make seed로 넣은 주문 100만 건을 지우지 않으려면 RESET=0으로 실행한다
+RESET ?= 1
 
 up:          ## 인프라(MySQL, Redis, Prometheus, Grafana) 실행
 	$(COMPOSE) up -d --wait
@@ -49,7 +51,10 @@ k6-reset:    ## 부하 테스트 데이터 초기화 (주문/결제 삭제, 재�
 k6-check:    ## 정합성 검사: 남은 재고 + 판매 수량 = 초기 재고 인가?
 	$(MYSQL_TABLE) < k6/sql/check.sql
 
-k6: k6-reset ## 부하 테스트 실행 → 결과를 k6/results/에 저장하고 Prometheus로 전송 (caffeinate: 테스트 중 맥 잠자기 방지)
+seed:        ## 05단계: 주문 100만 건 생성 (기존 주문과 결제는 지운다)
+	$(MYSQL_TABLE) < k6/sql/seed-orders.sql
+
+k6: $(if $(filter 0,$(RESET)),,k6-reset) ## 부하 테스트 실행 → 결과를 k6/results/에 저장하고 Prometheus로 전송 (caffeinate: 테스트 중 맥 잠자기 방지)
 	@$(MYSQL_EXEC) < k6/sql/db-stats.sql > k6/results/.$(RUN_ID).dbstats
 	K6_PROMETHEUS_RW_SERVER_URL=http://localhost:9090/api/v1/write \
 	K6_PROMETHEUS_RW_TREND_STATS='p(95),p(99),avg,max' \

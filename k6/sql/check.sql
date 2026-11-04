@@ -9,5 +9,7 @@ SELECT p.id                                      AS product_id,
            - CASE p.id WHEN 1 THEN 100 ELSE 10000000 END AS diff_should_be_0
 FROM product p
          LEFT JOIN orders o ON o.product_id = p.id AND o.status = 'PAID'
+-- 상품 3은 05단계에서 만든 지난 주문용 상품이라 재고 검사 대상이 아니다
+WHERE p.id IN (1, 2)
 GROUP BY p.id, p.stock
 ORDER BY p.id;
